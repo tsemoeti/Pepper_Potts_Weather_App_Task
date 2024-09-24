@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            background-color: #f0f0f0;
+        }
+        .weather-form {
+            margin-bottom: 20px;
+        }
+        .weather-icon {
+            font-size: 36px;
+            margin-right: 10px;
+        }
+        .weather-result {
+            padding: 20px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-6 offset-md-3">
+                <form id="weather-form" class="weather-form">
+                    <div class="form-group">
+                        <label for="city-name">Enter City Name:</label>
+                        <input type="text" class="form-control" id="city-name" name="city_name" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Search</button>
+                    {% csrf_token %}
+                </form>
+                <div id="weather-result" class="weather-result mt-3"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#weather-form').on('submit', function(e) {
+                e.preventDefault();
+                var cityName = $('#city-name').val();
+                $.ajax({
+                    url: '/search/',
+                    method: 'POST',
+                    data: {
+                        city_name: cityName,
+                        csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
+                    },
+                    success: function(response) {
+                        var iconCode = response.weather[0].icon;
+                        var iconUrl = `http://openweathermap.org/img/wn/${iconCode}@2x.png`;
+                        $('#weather-result').html(`
+                            <div class="alert alert-success" role="alert">
+                                <strong>Weather Data</strong><br>
+                                <img src="${iconUrl}" alt="Weather Icon" class="weather-icon">
+                                City: ${response.name}<br>
+                                Temperature: ${response.main.temp}°C<br>
+                                Description: ${response.weather[0].description}
+                            </div>
+                        `);
+                    },
+                    error: function(xhr, status, error) {
+                        $('#weather-result').html(`
+                            <div class="alert alert-danger" role="alert">
+                                <strong>Error</strong><br>
+                                ${error}
+                            </div>
+                        `);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
